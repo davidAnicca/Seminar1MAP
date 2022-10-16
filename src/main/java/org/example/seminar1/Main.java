@@ -5,6 +5,7 @@ import org.example.seminar1.models.Message;
 import org.example.seminar1.models.MessageTask;
 import org.example.seminar1.models.SortingTask;
 import org.example.seminar1.models.Task;
+import org.example.seminar1.runners.DelayTaskRunner;
 import org.example.seminar1.runners.PrinterTaskRunner;
 import org.example.seminar1.runners.StrategyTaskRunner;
 import org.example.seminar1.runners.TaskRunner;
@@ -16,8 +17,20 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Main {
+    private static Strategy strategy;
     public static void main(String[] args) {
-        //testMessage();
+        if(args.length == 0 ){
+            System.out.println("program strategie [FIFO/LIFO]");
+        }
+        String str = args[0].toUpperCase();
+        if(!str.equals(Strategy.FIFO.toString()) && !str.equals(Strategy.LIFO.toString())){
+            System.out.println("program strategie [FIFO/LIFO]");
+        }
+        if(str.equals(Strategy.FIFO.toString())){
+            strategy = Strategy.FIFO;
+        }else{
+            strategy = Strategy.LIFO;
+        }
         testTaskRunner();
 
     }
@@ -73,16 +86,30 @@ public class Main {
         tasks.add(task4);
         tasks.add(task5);
 
-        TaskRunner strategyTaskRunner = new StrategyTaskRunner(Strategy.LIFO);
-        TaskRunner printerTaskRunner = new PrinterTaskRunner(strategyTaskRunner);
+        TaskRunner strategyTaskRunner = new StrategyTaskRunner(strategy);
+        TaskRunner strategyTaskRunnerForPrinter = new StrategyTaskRunner(strategy);
+        TaskRunner strategyTaskRunnerForDelay = new StrategyTaskRunner(strategy);
+        TaskRunner printerTaskRunner = new PrinterTaskRunner(strategyTaskRunnerForPrinter);
+        TaskRunner delayTaskRunner = new DelayTaskRunner(strategyTaskRunnerForDelay);
 
+        /*
+        Se adauga taskuri in ambele
+         */
         for (Task task : tasks) {
-//            strategyTaskRunner.addTask(task);
+            strategyTaskRunner.addTask(task);
             printerTaskRunner.addTask(task);
+            delayTaskRunner.addTask(task);
         }
+        System.out.println("executie cu strategy fara decorator:");
+        strategyTaskRunner.executeAll();
 
-//        strategyTaskRunner.executeAll();
+        System.out.println("\nexecutie cu printer decorator:");
         printerTaskRunner.executeAll();
+
+        System.out.println("\nexecutie cu intarzieri:");
+        delayTaskRunner.executeAll();
+
+        System.out.println("\nsortare:");
         int[] numbers = {3, 2, 1};
         Task sortingTask = new SortingTask("1", "bka", SortingStrategy.MERGESORT, numbers);
         sortingTask.execute();
